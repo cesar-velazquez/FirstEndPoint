@@ -1,18 +1,21 @@
 const express = require('express')
+const { findAll, Create, GetOne, Patch, Delete, login } = require('./users-Controller.js')
+const usersMiddleware = require('./users-Middleware.js');
+
+// Ruta Get
 
 const router = express.Router()
 
-const { findAll, Create, GetOne, Patch, Delete } = require('./users-Controller')
+router.post('/users', Create);
 
-// Ruta Get
-router.get('/users', findAll)
+router.post('/users/login', login);
 
-router.post('/users', Create)
+router.get('/users', findAll);
 
-router.get('/users/:id', GetOne)
+router.get('/users/:id', usersMiddleware.validateUserExists, GetOne)
 
-router.patch('/users/:id', Patch)
+router.patch('/users/:id', usersMiddleware.validateUserExists, Patch)
 
-router.delete('/users/:id', Delete)
+router.delete('/users/:id', usersMiddleware.validateUserExists, Delete)
 
 module.exports = router;

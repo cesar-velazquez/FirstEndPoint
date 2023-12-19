@@ -1,4 +1,4 @@
-const UserModel = require('./users.model')
+const UserModel = require('./users.model.js')
 
 class UsersServices {
 
@@ -29,5 +29,20 @@ class UsersServices {
             status: 'disabled'
         })
     }
+    
+    static async findOneByEmail(email) {
+        try {
+            return await UserModel.findOne({
+                where: {
+                    status: 'available',
+                    email: email,
+                },
+            });
+        } catch (error) {
+            throw new Error(`Error en findOneByEmail: ${error.message}`);
+        }
+    }
+
+
 }
 module.exports = UsersServices 

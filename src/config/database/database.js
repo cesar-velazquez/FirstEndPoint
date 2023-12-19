@@ -4,7 +4,7 @@ const sequelize = new Sequelize(envs.DB_URI, {
     logging: false
 })
 
-const authenticated = async() => {
+const authenticated = async () => {
     try {
         await sequelize.authenticate();
         console.log("Connection has been established successfully. 😁")
@@ -13,7 +13,7 @@ const authenticated = async() => {
     }
 }
 
-const syncUp = async() => {
+const syncUp = async () => {
     try {
         await sequelize.sync()
         console.log("Connection has been synced successfully. 👀")

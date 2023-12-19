@@ -1,5 +1,6 @@
 const { json } = require('sequelize');
 const RepairsServices = require('./repairs.service');
+const validateRepair = require('./repairs.Schema');
 
 const GetAllRepairs = async (req, res) => {
     const NewRepair = await RepairsServices.GetAll();
@@ -10,15 +11,28 @@ const GetAllRepairs = async (req, res) => {
 }
 
 const CreateRepair = async (req, res) => {
-    // const fecha = new Date();    
-    const { userid, date } = req.body;
-    const AddRepair = await RepairsServices.create({
-        userid, date
-    })
-    return res.status(200).json({
-        message: "POST",
-        data: AddRepair
-    })
+    try {
+        const { hasError, errorMessages, userData } = validateRepair(req.body)
+
+        if (hasError) {
+            return res.status(422).json({
+                status: 'error',
+                message: errorMessages,
+            })
+        }
+        const {date, motorsNumber, description, userid} = userData;
+        const NewRepair = await RepairsServices.create({date, motorsNumber, description, userid});
+        return res.status(200).json({
+            message: 'Repair create successfully!',
+            data: NewRepair 
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 'fail',
+            message: 'Something went very wrong! 💀',
+            error,
+        });
+    }
 }
 
 const GetOneRepairs = async (req, res) => {
@@ -50,26 +64,26 @@ const PatchRepairs = async (req, res) => {
         }
         const statusUpdated = await RepairsServices.UpdateRepair(NewStatus, {
             status
-        }) 
+        })
         return res.status(200).json({
             message: "Status changed 😉",
             statusUpdated
         })
     } catch (error) {
-        return res.status(500).json({            
+        return res.status(500).json({
             message: 'Something went very wrong! 💀',
             error
         })
     }
 }
 
-const DeleteRepairs = async(req, res) => {
+const DeleteRepairs = async (req, res) => {
     const { id } = req.params;
     const RDelete = await RepairsServices.GetOne(id)
     if (!RDelete) {
         return res.status(404).json({
             status: "error",
-            message:`The reparation with the id ${id} is not found`
+            message: `The reparation with the id ${id} is not found`
         })
     }
     await RepairsServices.DeleteRepairS(RDelete)
