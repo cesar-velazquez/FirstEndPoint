@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router()
 
-const {GetAllRepairs, CreateRepair, GetOneRepairs, PatchRepairs, DeleteRepairs} = require('./repairs.controller')
+const {GetAllRepairs, CreateRepair, GetOneRepairs, PatchRepairs, DeleteRepairs} = require('./repairs.controller');
 
 // Rutas
 router.get('/api/v1/repairs', GetAllRepairs)
