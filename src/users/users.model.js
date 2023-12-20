@@ -23,11 +23,15 @@ const Users = sequelize.define('users', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    role: {        
+    role: {
         type: DataTypes.STRING,
         // type: DataTypes.ENUM('client', 'developer', 'employee'),
         allowNull: false,
         defaultValue: 'client',
+    },
+    passwordChangedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
     },
     // status: {
     //     type: DataTypes.STRING,

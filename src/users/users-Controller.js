@@ -1,11 +1,9 @@
 const AppError = require("../common/errors/appError.js");
 const catchAsync = require("../common/errors/catchAsync.js");
-const { verifyPassword } = require("../config/plugin/encripted-password.plugin.js");
+const { verifyPassword, encryptedPassword } = require("../config/plugin/encripted-password.plugin.js");
 const generateJWT = require("../config/plugin/generate-jwt.plugin.js");
 const { validateUser, validateLogin } = require("./users-Schema.js");
 const UsersServices = require("./users.services.js");
-
-
 
 const Create = async (req, res) => {
     try {
@@ -47,7 +45,7 @@ const Create = async (req, res) => {
 };
 
 const login = catchAsync(async (req, res, next) => {
-    const { hasError, errorMessages, userData } = validateLogin(req.body);    
+    const { hasError, errorMessages, userData } = validateLogin(req.body);
 
     // 1-traer datos y validar
     // const { hasError, errorMessages, userData } = validateLogin(req.body);
@@ -85,12 +83,6 @@ const login = catchAsync(async (req, res, next) => {
         },
     })
 });
-
-
-
-
-
-
 
 const findAll = async (req, res) => {
     const NewUser = await UsersServices.GetAll();
@@ -153,11 +145,56 @@ const Delete = async (req, res) => {
     })
 }
 
+const changePassword = catchAsync(async (req, res, next) => {
+    const { sessionUser } = req;
+
+    // 2 traer los datos de la req.body
+    const { currentPassword, newPassword } = req.body;
+
+    // 3 comparar la contraseña;
+    if (currentPassword === newPassword) {
+        return next(new AppError('The password cannot be equal', 400));
+    }
+    // 4 validar si la contraseña actual es igual a la contraseña en base de datos:
+    try {
+
+        const isCorrectPasword = await verifyPassword(
+            currentPassword,
+            sessionUser.password
+        )
+
+        if (!isCorrectPasword) {
+            return next(new AppError('Incorrect email or password', 401));
+        }
+
+        // 5 encriptar loa nueva contraseña:
+        const hashedNewPassword = await encryptedPassword(newPassword);
+
+        // Actualizar contra:
+        await UsersServices.Update(sessionUser, {
+            password: hashedNewPassword,
+            passwordChangedAt: new Date(),
+        })
+
+        return res.status(200).json({
+            message: 'The user password was updated'
+        });
+        // });
+    } catch (error) {
+        console.error('Error al cambiar la contraseña: ', error );
+        return res.status(500).json({
+            status: 'fail',
+            message: 'There is a problem 😣',
+            error,
+        })
+    }
+});
 module.exports = {
     login,
     findAll,
     Create,
     GetOne,
     Patch,
-    Delete
+    Delete,
+    changePassword
 }
