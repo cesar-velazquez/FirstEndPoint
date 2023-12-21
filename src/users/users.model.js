@@ -33,10 +33,6 @@ const Users = sequelize.define('users', {
         type: DataTypes.DATE,
         allowNull: true,
     },
-    // status: {
-    //     type: DataTypes.STRING,
-    //     defaultValue: 'available'
-    // }
     status: {
         type: DataTypes.ENUM('available', 'disabled'),
         defaultValue: 'available'

@@ -5,11 +5,18 @@ const AppError = require('./common/errors/appError.js');
 const globalErrorHandler = require('./common/errors/errors.Controller.js');
 const morgan = require('morgan');
 const { envs } = require('./config/enviroments/enviroments.js');
+const enableCors = require('./config/plugin/cors.plugin.js');
 
 const app = express();
-
+const ACCEPTED_ORIGINS = [
+    'http://localhost:8080',
+    'http://localhost:3000',
+    // 'http://localhost:3001',
+]
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+enableCors(app, ACCEPTED_ORIGINS)
 
 if (envs.NODE_ENV === 'development') {
     app.use(morgan('dev'));
