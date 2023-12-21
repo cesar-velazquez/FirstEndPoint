@@ -5,8 +5,8 @@ const generateJWT = require("../config/plugin/generate-jwt.plugin.js");
 const { validateUser, validateLogin } = require("./users-Schema.js");
 const UsersServices = require("./users.services.js");
 
-const Create = async (req, res) => {
-    try {
+const Create = catchAsync(
+    async (req, res, next) => {
         const { hasError, errorMessages, userData } = validateUser(req.body);
 
         if (hasError) {
@@ -17,15 +17,12 @@ const Create = async (req, res) => {
         }
 
         const { name, email, password, role } = userData;
-
         const NewUser = await UsersServices.create({ name, email, password, role });
         const token = await generateJWT(NewUser.id)
 
         return res.status(200).json({
             message: 'Usuario Creado con Éxito! 😃🙌',
             token,
-            // message: 'Usuario Creado con Éxito!',
-            // data: NewUser
             users: {
                 id: NewUser.id,
                 name: NewUser.name,
@@ -34,15 +31,8 @@ const Create = async (req, res) => {
                 role: NewUser.role,
             }
         });
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            status: 'fail',
-            message: 'Something went very wrong! 💀',
-            error,
-        });
-    }
-};
+    });
+
 
 const login = catchAsync(async (req, res, next) => {
     const { hasError, errorMessages, userData } = validateLogin(req.body);
@@ -72,8 +62,8 @@ const login = catchAsync(async (req, res, next) => {
     // 4 Generar el jwt
     const token = await generateJWT(user.id);
     return res.status(200).json({
+        message: 'Usuario Encontrado! 💹',
         token,
-        message: 'Usuario Encontrado!',
         users: {
             id: user.id,
             name: user.name,
@@ -84,25 +74,25 @@ const login = catchAsync(async (req, res, next) => {
     })
 });
 
-const findAll = async (req, res) => {
-    const NewUser = await UsersServices.GetAll();
-    return res.status(200).json({
-        message: 'method GET ',
-        NewUser
-    })
-}
+const findAll = catchAsync(
+    async (req, res) => {
+        const NewUser = await UsersServices.GetAll();
+        return res.status(200).json({
+            message: 'Users: ',
+            NewUser
+        })
+    });
 
 
-const GetOne = async (req, res) => {
+const GetOne = catchAsync(async (req, res) => {
     const { id } = req.params;
     const NewUser = await UsersServices.GetOne(id)
     return res.status(200).json({
         NewUser
     })
-}
+})
 
-const Patch = async (req, res) => {
-    try {
+const Patch = catchAsync(async (req, res) => {    
         const { id } = req.params;
         const { name, email } = req.body;
         const NewChange = await UsersServices.GetOne(id)
@@ -121,29 +111,23 @@ const Patch = async (req, res) => {
             message: 'Info Changed 😉',
             UserUpdated
         })
-    } catch (error) {
-        return res.status(500).json({
-            status: 'fail',
-            message: 'Something went very wrong! 💀',
-            error
-        })
-    }
-}
+})
 
-const Delete = async (req, res) => {
-    const { id } = req.params
-    const UserDelete = await UsersServices.GetOne(id)
-    if (!UserDelete) {
-        return res.status(404).json({
-            status: 'error',
-            message: `The user with the id: ${id} not found`
+const Delete = catchAsync(
+    async (req, res) => {
+        const { id } = req.params
+        const UserDelete = await UsersServices.GetOne(id)
+        if (!UserDelete) {
+            return res.status(404).json({
+                status: 'error',
+                message: `The user with the id: ${id} not found`
+            })
+        }
+        await UsersServices.Delete(UserDelete)
+        return res.status(200).json({
+            message: '❌ User deleted succesfully.! ❌'
         })
-    }
-    await UsersServices.Delete(UserDelete)
-    return res.status(200).json({
-        message: '❌ User deleted succesfully.! ❌'
     })
-}
 
 const changePassword = catchAsync(async (req, res, next) => {
     const { sessionUser } = req;
@@ -181,7 +165,7 @@ const changePassword = catchAsync(async (req, res, next) => {
         });
         // });
     } catch (error) {
-        console.error('Error al cambiar la contraseña: ', error );
+        console.error('Error al cambiar la contraseña: ', error);
         return res.status(500).json({
             status: 'fail',
             message: 'There is a problem 😣',

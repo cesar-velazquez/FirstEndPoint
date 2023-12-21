@@ -7,29 +7,49 @@ const UsersServices = require('./users.services.js');
 const { envs } = require('../config/enviroments/enviroments.js');
 const AppError = require('../common/errors/appError.js');
 
-async function validateUserExists(req, res, next) {
+// async function validateUserExists(req, res, next) {
+//     const { id } = req.params;
+
+//     try {
+//         const user = await UsersServices.GetOne(id);
+
+//         if (!user) {
+//             return res.status(404).json({
+//                 status: 'error',
+//                 message: `Usuario con el ID: ${id} no encontrado`,
+//             });
+//         }
+
+//         req.usuario = user;
+//         next();
+//     } catch (error) {
+//         console.error('Error al validar usuario:', error);
+//         res.status(500).json({
+//             status: 'fail',
+//             message: 'Error interno del servidor',
+//         });
+//     }
+// }
+const validateUserExists = catchAsync(async (req, res, next) => {
     const { id } = req.params;
 
-    try {
-        const user = await UsersServices.GetOne(id);
+    // try {
+    const user = await UsersServices.GetOne(id);
 
-        if (!user) {
-            return res.status(404).json({
-                status: 'error',
-                message: `Usuario con el ID: ${id} no encontrado`,
-            });
-        }
-
-        req.usuario = user;
-        next();
-    } catch (error) {
-        console.error('Error al validar usuario:', error);
-        res.status(500).json({
-            status: 'fail',
-            message: 'Error interno del servidor',
-        });
+    if (!user) {
+        return next(new AppError(`Usuario con el ID: ${id} no encontrado`));
     }
-}
+
+    req.usuario = user;
+    next();
+    // } catch (error) {
+    //     console.error('Error al validar usuario:', error);
+    //     res.status(500).json({
+    //         status: 'fail',
+    //         message: 'Error interno del servidor',
+    //     });
+    // }
+})
 
 const protect = catchAsync(async (req, res, next) => {
     //1 Obtener token
